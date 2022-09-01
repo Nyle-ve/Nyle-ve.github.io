@@ -24,9 +24,11 @@
         var y = 0;
         var nivel = 1;
         var start = false;
+        var varo = 0;
 
         var carroDer = new Array;
         var carroIzq = new Array;
+        var monedas = new Array;
 
         var carretera = new Image();
         var blueRight = new Image();
@@ -36,8 +38,13 @@
         var redRight = new Image();
         var redLeft = new Image();
         var chara = new Image();
+        var charaR = new Image();
+        var charaL = new Image();
+        var charaB = new Image();
+        var coin = new Image();
 
         var claxon = new Audio();
+        var caja = new Audio();
         var crash = new Audio();
         var cancion = new Audio();
         //
@@ -54,11 +61,16 @@
             redRight.src = "red-right.png";
             redLeft.src = "red-left.png";
             chara.src="wheelchair.png";
+            charaR.src="wheelchair_r.png";
+            charaL.src="wheelchair_l.png";
+            charaB.src="wheelchair_b.png";
             carretera.src="carretera.jpg";
+            coin.src="coin.png";
 
             claxon.src="claxon.mp3";
             crash.src="crash.mp3";
             cancion.src="cancion.mp3";
+            caja.src="caja.mp3";
 
             player = new Cuadro(475,900,50,50,generateRandomColor());
             //carros
@@ -66,6 +78,10 @@
             for (let i = 0; i < 8; i++) {
                 carroDer.push(new Cuadro(getRandomInt(1000),y,100,50,generateRandomColor()));
                 y+=100;
+            }
+            //monedas
+            for (let i = 0; i < 4; i++) {
+                monedas.push(new Cuadro(getRandomInt(950),100+getRandomInt(775),25,25,generateRandomColor()));
             }
 
             paint();
@@ -92,7 +108,20 @@
             ctx.fillRect(0,0,1000,100);
 
             //player
-            ctx.drawImage(chara, player.x, player.y, 50, 50);
+            if(direccion=="right"){
+                ctx.drawImage(charaR, player.x, player.y, 50, 50);
+            }else if(direccion=="left"){
+                ctx.drawImage(charaL, player.x, player.y, 50, 50);
+            }else if(direccion=="down"){
+                ctx.drawImage(charaB, player.x, player.y, 50, 50);
+            }else{
+                ctx.drawImage(chara, player.x, player.y, 50, 50);
+            }
+
+            //Monedas
+            for (let i = 0; i < monedas.length; i++) {
+                ctx.drawImage(coin, monedas[i].x, monedas[i].y, 25, 25);
+            }
 
             //Carros derecha
             for (let i = 0; i < carroDer.length; i++) {
@@ -122,9 +151,10 @@
             ctx.fillStyle="black";
             ctx.font= "25px serif";
             ctx.fillText("Nivel: " + nivel, 900, 30);
+            ctx.fillText("Dinero: " + varo, 20, 60);
 
             //Validar win
-            if(player.y<100&&nivel==3){
+            if(player.y<100&&nivel==4){
                 ctx.fillStyle="rgba(0,0,0,0.5)";
                 ctx.fillRect(0,0,1000,1000);
                 ctx.fillStyle="white";
@@ -149,9 +179,12 @@
                 player.x = 450;
                 if(nivel==1){
                     y = 150;
-                    for (let i = 0; i < 4; i++) {
+                    for (let i = 0; i < 8; i++) {
                         carroIzq.push(new Cuadro(getRandomInt(1000),y,100,50,generateRandomColor()));
-                        y+=200;
+                        y+=100;
+                    }
+                    for (let i = 0; i < 6; i++) {
+                        monedas.push(new Cuadro(getRandomInt(950),100+getRandomInt(775),25,25,generateRandomColor()));
                     }
                     nivel++;
                 }else if(nivel==2){
@@ -164,6 +197,24 @@
                     for (let i = 0; i < 4; i++) {
                         carroIzq.push(new Cuadro(getRandomInt(1000),y,100,50,generateRandomColor()));
                         y+=200;
+                    }
+                    for (let i = 0; i < 6; i++) {
+                        monedas.push(new Cuadro(getRandomInt(950),100+getRandomInt(775),25,25,generateRandomColor()));
+                    }
+                    nivel++;
+                }else if(nivel==3){
+                    y = 200;
+                    for (let i = 0; i < 4; i++) {
+                        carroDer.push(new Cuadro(getRandomInt(1000),y,100,50,generateRandomColor()));
+                        y+=200;
+                    }
+                    y = 250;
+                    for (let i = 0; i < 4; i++) {
+                        carroIzq.push(new Cuadro(getRandomInt(1000),y,100,50,generateRandomColor()));
+                        y+=200;
+                    }
+                    for (let i = 0; i < 6; i++) {
+                        monedas.push(new Cuadro(getRandomInt(950),100+getRandomInt(775),25,25,generateRandomColor()));
                     }
                     nivel++;
                 }
@@ -207,6 +258,17 @@
                     crash.play();
                     crash.play();
                     window.location.reload();
+                }
+                
+            }
+
+            //Dinero
+            for (let i = 0; i < monedas.length; i++) {
+                if(player.se_tocan(monedas[i])){
+                    monedas[i].x = -50;
+                    monedas[i].y = -50;
+                    caja.play();
+                    varo += 5;
                 }
                 
             }
