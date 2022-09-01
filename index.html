@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas</title>
+</head>
+<body>
+    <canvas id="mycanvas" width="1000" height="1000">
+        No funciona
+    </canvas>
+
+    <script>
+        //Variables
+        var cv = null;
+        var ctx = null;
+        var player = null;
+        var speed = 5;
+        var tile = 50;
+        var then = Date.now();
+        var now;
+        var direccion = "up";
+        var y = 0;
+        var nivel = 1;
+        var start = false;
+
+        var carroDer = new Array;
+        var carroIzq = new Array;
+
+        var carretera = new Image();
+        var blueRight = new Image();
+        var blueLeft = new Image();
+        var yellowRight = new Image();
+        var yellowLeft = new Image();
+        var redRight = new Image();
+        var redLeft = new Image();
+        var chara = new Image();
+
+        var claxon = new Audio();
+        var crash = new Audio();
+        var cancion = new Audio();
+        //
+        
+        //Run
+        function run() {
+            cv = document.getElementById('mycanvas');
+            ctx = cv.getContext('2d');
+
+            blueRight.src = "blue-right.png";
+            blueLeft.src = "blue-left.png";
+            yellowRight.src = "yellow-right.png"
+            yellowLeft.src = "yellow-left.png"
+            redRight.src = "red-right.png";
+            redLeft.src = "red-left.png";
+            chara.src="wheelchair.png";
+            carretera.src="carretera.jpg";
+
+            claxon.src="claxon.mp3";
+            crash.src="crash.mp3";
+            cancion.src="cancion.mp3";
+
+            player = new Cuadro(475,900,50,50,generateRandomColor());
+            //carros
+            y = 100;
+            for (let i = 0; i < 8; i++) {
+                carroDer.push(new Cuadro(getRandomInt(1000),y,100,50,generateRandomColor()));
+                y+=100;
+            }
+
+            paint();
+        }
+        //
+
+        // document.body.addEventListener("mousemove", function () {
+        //     cancion.play()
+        // })
+
+        //Paint
+        function paint() {
+            window.requestAnimationFrame(paint)
+
+            //carriles
+            ctx.drawImage(carretera, 0, 100, 1000, 200);
+            ctx.drawImage(carretera, 0, 300, 1000, 200);
+            ctx.drawImage(carretera, 0, 500, 1000, 200);
+            ctx.drawImage(carretera, 0, 700, 1000, 200);
+
+            //acera
+            ctx.fillStyle="gray";
+            ctx.fillRect(0,900,1000,100);
+            ctx.fillRect(0,0,1000,100);
+
+            //player
+            ctx.drawImage(chara, player.x, player.y, 50, 50);
+
+            //Carros derecha
+            for (let i = 0; i < carroDer.length; i++) {
+                if(i%2==0){
+                    ctx.drawImage(blueRight, carroDer[i].x, carroDer[i].y, 100, 50);
+                }else{
+                    ctx.drawImage(yellowRight, carroDer[i].x, carroDer[i].y, 100, 50);
+                }
+                if(i%3==0) {
+                    ctx.drawImage(redRight, carroDer[i].x, carroDer[i].y, 100, 50);
+                }
+            }
+
+            //Carros izquierda
+            for (let i = 0; i < carroIzq.length; i++) {
+                if(i%2==0){
+                    ctx.drawImage(redLeft, carroIzq[i].x, carroIzq[i].y, 100, 50);
+                }else{
+                    ctx.drawImage(blueLeft, carroIzq[i].x, carroIzq[i].y, 100, 50);
+                }
+                if(i%3==0) {
+                    ctx.drawImage(yellowLeft, carroIzq[i].x, carroIzq[i].y, 100, 50);
+                }
+            }
+
+            //mucho texto
+            ctx.fillStyle="black";
+            ctx.font= "25px serif";
+            ctx.fillText("Nivel: " + nivel, 900, 30);
+
+            //Validar win
+            if(player.y<100&&nivel==3){
+                ctx.fillStyle="rgba(0,0,0,0.5)";
+                ctx.fillRect(0,0,1000,1000);
+                ctx.fillStyle="white";
+                ctx.fillText("¡G A N A S T E!",450,450,);
+            }else{
+                ctx.fillStyle="black";
+                ctx.font= "25px serif";
+                now = Date.now();
+                var tiempo = (now - then)/1000;
+                ctx.fillText("Tiempo: " + parseInt(tiempo), 20, 30);
+                update();
+            }
+        }
+        //
+
+        //Update
+        function update(){
+
+            //Niveles
+            if(player.y<100){
+                player.y = 900;
+                player.x = 450;
+                if(nivel==1){
+                    y = 150;
+                    for (let i = 0; i < 4; i++) {
+                        carroIzq.push(new Cuadro(getRandomInt(1000),y,100,50,generateRandomColor()));
+                        y+=200;
+                    }
+                    nivel++;
+                }else if(nivel==2){
+                    y = 100;
+                    for (let i = 0; i < 4; i++) {
+                        carroDer.push(new Cuadro(getRandomInt(1000),y,100,50,generateRandomColor()));
+                        y+=200;
+                    }
+                    y = 150;
+                    for (let i = 0; i < 4; i++) {
+                        carroIzq.push(new Cuadro(getRandomInt(1000),y,100,50,generateRandomColor()));
+                        y+=200;
+                    }
+                    nivel++;
+                }
+            }
+
+            //Velocidades
+            for (let i = 0; i < carroDer.length; i++) {
+                if(carroDer[i].x>1000){
+                    carroDer[i].x = -50;
+                }else{
+                    if(i%2==0){
+                        carroDer[i].x += speed+1;
+                    }else{
+                        carroDer[i].x += speed+2;
+                    }
+                }
+            }
+            for (let i = 0; i < carroIzq.length; i++) {
+                if(carroIzq[i].x<0){
+                    carroIzq[i].x = 1050;
+                }else{
+                    if(i%2==0){
+                        carroIzq[i].x -= speed+1;
+                    }else{
+                        carroIzq[i].x -= speed+2;
+                    }
+                }
+            }
+
+            //Atropellasion
+            for (let i = 0; i < carroDer.length; i++) {
+                if(player.se_tocan(carroDer[i])){
+                    crash.play();
+                    crash.play();
+                    window.location.reload();
+                }
+                
+            }
+            for (let i = 0; i < carroIzq.length; i++) {
+                if(player.se_tocan(carroIzq[i])){
+                    crash.play();
+                    crash.play();
+                    window.location.reload();
+                }
+                
+            }
+            
+        }
+        //
+
+        //Event Listener
+        document.addEventListener("keydown", function(e){
+            if(!start){
+                cancion.play();
+                start=true;
+            }
+            claxon.play();
+            //arriba
+            if(e.keyCode==87 || e.keyCode==38){
+                direccion="up";
+                player.y -= tile;
+            }
+            //abajo
+            if(e.keyCode==83 || e.keyCode==40){
+                direccion="down";
+                player.y += tile;
+            }
+            //derecha
+            if(e.keyCode==68 || e.keyCode==39){
+                direccion="right";
+                player.x += tile;
+            }
+            //izquierda
+            if(e.keyCode==65 || e.keyCode==37){
+                direccion="left";
+                player.x -= tile;
+            }
+        })
+        //
+
+        //Objeto cuadro
+        function Cuadro(x,y,w,h,c){
+            this.x = x;
+            this.y = y;
+            this.w = w;
+            this.h = h;
+            this.c = c;
+
+            this.se_tocan = function (target) { 
+            if(this.x < target.x + target.w &&
+                this.x + this.w > target.x && 
+                this.y < target.y + target.h && 
+                this.y + this.h > target.y){
+                    return true; 
+                }  
+            };
+
+            this.paint=function(ctx){
+                ctx.fillStyle=this.c;
+                ctx.fillRect(this.x,this.y,this.w,this.h);
+            }
+        }
+        //
+
+        window.requestAnimationFrame = (function () {
+            return window.requestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                function (callback) {
+                    window.setTimeout(callback, 17);
+                };
+        }());
+
+        window.addEventListener("load", run, false);
+
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        function generateRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+    </script>
+    
+</body>
+</html>
